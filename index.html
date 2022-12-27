@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Component Vue JS</title>
+    <style>
+        @font-face {
+            font-family: "Quicksand";
+            src: url("assets/font/Quicksand-VariableFont_wght.ttf");
+        }
+
+        @font-face {
+            font-family: "Quicksand Bold";
+            src: url("assets/font/Quicksand-Bold.ttf");
+        }
+
+        body {
+            margin: 5%;
+            font-family: "Quicksand", sans-serif;
+        }
+
+        .judul {
+            text-align: center;
+            font-size: 4em;
+        }
+
+        footer {
+            font-family: "Quicksand Bold";
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #74747d;
+            background-color: #F6F6F6;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .input-group {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <h1 class="judul">Belajar VueJS</h1>
+
+        <!-- Global Component & Property props(attribute custom yang biss digunkan untuk mengirimkan sebuah value) -->
+        <!-- <header-component coba="JavaScript" gambar="assets/img/javascript.jpg"></header-component> -->
+        <header-component coba="VueJS" gambar="assets/img/vuejs-petanikode.png"></header-component>
+
+        <nav>
+            <router-link to="/">Home</router-link>
+            <router-link to="/about">About</router-link>
+            <router-link to="/kelas">Kelas</router-link>
+        </nav>
+
+        <p>The progressive JavaScript Framework</p>
+
+        <main>
+            <!-- Global Component-->
+            <!-- Listenig to Child Components Event / Emit Custom Event dan Emit Submit Data -->
+            <!-- <kelas :items="kelas" v-on:hapuskelas="hapusKelas" @submitkelas="tambahKelas"></kelas> -->
+
+            <!-- Local Component -->
+            <!-- <home></home> -->
+
+            <router-view :items="kelas" v-on:hapuskelas="hapusKelas" @submitkelas="tambahKelas"></router-view>
+
+        </main>
+
+        <!-- Slots -->
+        <footer-component>
+            <p>copyright 2022</p>
+        </footer-component>
+    </div>
+
+    <!-- Vue JS -->
+    <script src="assets/vendor/vue.js"></script>
+
+    <!-- Vue Router CDN -->
+    <!-- <script src="https://unpkg.com/vue-router@4"></script> -->
+    <script src="assets/vendor/vue-router.js"></script>
+
+    <!-- UUID V4 -->
+    <script src="assets/vendor/uuidv4.min.js"></script>
+
+    <!-- SWEATALERT JS -->
+    <script src="assets/vendor/sweetalert.min.js"></script>
+
+    <script>
+
+
+        /* Component Local & Component Global
+        -------------------------------------------------------------------------------------------- */
+
+        // KOMPONEN LOCAL
+        const Home = {
+            template: `
+                <section>
+                    <h1>Home</h1>
+                </section>
+            `
+        }
+
+        const About = {
+            template: `
+                <section>
+                    <h1>About</h1>
+                </section>
+            `
+        }
+
+        const Kelas = {
+            props: ['items'],
+            data: function () {
+                return {
+                    kelas: {
+                        judul: '',
+                        deskripsi: '',
+                        gambar: ''
+                    },
+                    previewImg: '',
+                    error: {
+                        judul: '',
+                        deskripsi: ''
+                    }
+                }
+            },
+            methods: {
+                submitKelas: function () {
+
+                    this.error.judul = '';
+                    this.error.deskripsi = '';
+
+                    if (this.kelas.judul == '') {
+                        this.error.judul = 'Judul is required';
+                    }
+                    if (this.kelas.deskripsi == '') {
+                        this.error.deskripsi = 'Deskripsi is required';
+                    }
+
+                    if (this.kelas.judul && this.kelas.deskripsi) {
+                        const data = {
+                            id: uuidv4(),
+                            judul: this.kelas.judul,
+                            deskripsi: this.kelas.deskripsi,
+                            gambar: this.kelas.gambar
+                        };
+                        this.$emit('submitkelas', data);
+
+                        this.kelas.judul = "";
+                        this.kelas.deskripsi = "";
+                        this.kelas.gambar = "";
+                        this.previewImg = "";
+                        this.$refs.gambar.value = "";
+                    }
+
+                },
+                upload: function (event) {
+                    let namaGambar = event.target.files[0].name;
+                    this.kelas.gambar = namaGambar;
+                    this.previewImg = URL.createObjectURL(event.target.files[0]);
+                },
+                url_gambar: function (gambar) {
+                    return 'assets/img/' + gambar;
+                }
+            },
+            template: `
+                <section>
+                    <h2>Tambah Kelas</h2>
+
+                    <form @submit.prevent="submitKelas">
+                        <div class="input-group">
+                            <label for="judul">Nama Kelas : </label> <br>
+                            <input type="text" id="judul" placeholder="Nama Kelas" autocomplete="off" v-model="kelas.judul">
+                            <div class="error" v-if="error.judul"> <small> {{ error.judul }} </small> </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="deskripsi">Deskripsi : </label> <br>
+                            <textarea id="deskripsi" autocomplete="off" v-model="kelas.deskripsi"></textarea>
+                            <div class="error" v-if="error.deskripsi"> <small> {{ error.deskripsi }} </small> </div>    
+                        </div>
+                        <div class="input-group">
+                            <label for="gambar">Masukkan Gambar : </label> <br>
+                            <template v-if="previewImg">
+                                <img :src="previewImg" width="150"> <br>
+                            </template>
+                            <input type="file" @change="upload" ref="gambar">
+                        </div>
+                        <p><button type="submit">Submit</button></p>
+                    </form>
+
+                    <h1>Daftar Kelas ({{items.length}})</h1>
+                    <template v-if="items.length">
+                        <ul>
+                            <li v-for="(item, index) of items">
+                                <p> 
+                                    {{ index+1 }} - {{ item.judul }}
+                                    <a href="" @click.prevent="$emit('hapuskelas', item.id)">Hapus</a>
+                                    <router-link :to="'/kelas/' + item.id">Detail</router-link>
+                                </p>
+                                <img :src="url_gambar(item.gambar)" width="100" />
+                            </li>
+                        </ul>
+                    </template >
+                    <p v-else>Kelas belum tersedia</p>
+
+                </section>
+            `
+        }
+
+        const NotFound = {
+            template: `
+                <section>
+                    <h1>Halaman Tidak Ditemukan</h1>    
+                </section>
+            `
+        }
+
+        const detailKelas = {
+            data() {
+                return {
+                    detailKelas: {}
+                }
+            },
+            methods: {
+                filterKelas() {
+                    let kelas = JSON.parse(localStorage.getItem('kelas'));
+                    let id = this.$route.params.id; // id sesuai dg nama path url yg ada di routes setelah :
+                    let data = kelas.filter(k => k.id == id); //Method filter mengembalikan sebuah Array
+                    this.detailKelas = data[0];
+                },
+                url_gambar: function (gambar) {
+                    return '../assets/img/' + gambar;
+                }
+            },
+            created() {
+                this.filterKelas();
+            },
+            template: `
+                <section>
+                    <h1>Detail Kelas {{ detailKelas.judul }}</h1>
+                    <img :src=" url_gambar(detailKelas.gambar)" width="100">
+                    <p>{{ detailKelas.deskripsi }}</p>  
+                    <router-link to="/kelas">Kembali</router-link>  
+                </section>
+            `
+        }
+
+        // KOMPONEN GLOBAL
+        /*
+            -Disarankan mengikuti Aturan W3C(menggunakna huruf kecil & menggunakan kata penghubung)
+            -Setiap Template Component Harus memiliki 1 element Root atau element Pembungkus templatenya
+            -key yang ada di dalam props harus sama Dengan nama attrbute custom dari component tsb
+         */
+        Vue.component('header-component', {
+            props: ['coba', 'gambar'],
+            data: function () {
+                return {
+                    pesan: "Hello, Component Vue JS"
+                }
+            },
+            template: `<header header >
+                    <p>{{'Hello, ' + coba}}</p>
+                    <img :src="gambar" :alt="coba" width="300">
+                </header>`
+        });
+
+        Vue.component('footer-component', {
+            template: `<footer id="footer">
+                        <slot></slot>
+                    </footer > 
+                `
+        });
+
+        Vue.component('kelas', {
+            props: ['items'],
+            data: function () {
+                return {}
+            },
+            methods: {},
+            template: `
+            <section section >
+                    <h1>Tambah Kelas ({{items.length}})</h1>
+                    <template v-if="items.length">
+                        <ul>
+                            <li v-for="(item, index) of items">
+                                {{ index+1 }} - {{ item }}
+                                <a href="" @click.prevent="$emit('hapuskelas', index)">Hapus</a>
+                            </li>
+                        </ul>
+                    </template >
+                    <p v-else>Kelas belum tersedia</p>
+
+                    <h2>Form input Bindings</h2>
+                    <input type="text" placeholder="Nama Kelas" @keyup.enter="$emit('submitkelas', $event)" >
+                </section >
+            `
+        });
+
+        /* Vue Router
+        -------------------------------------------------------------------------------------------- */
+
+        const routes = [
+            { path: '/', component: Home },
+            { path: '/about', component: About },
+            { path: '/kelas', component: Kelas },
+            { path: '/kelas/:id', component: detailKelas }, //Tanda atau Parameter Dinamis yang ditandai dg : (titik dua)
+            { path: '*', component: NotFound }
+            /*
+             *Path, parameter Global '*' atau karakter willcard. Artinya jika parameter url yang dimasukkan tidak cocok atau belum didaftarkan di routing konfigurasi maka path '*' yang akan dirender atau ditampilkan. Pastikan berada setelah route aplikasinya.
+            */
+        ];
+
+        const router = new VueRouter({
+            mode: 'history', //Harus dijalankan mengggunakan server
+            routes // short for `routes: routes`
+        });
+
+        /* Vue JS
+        --------------------------------------------------------------------------------------------- */
+
+        // DATA
+        const dt = {
+            // kelas: [
+            //     { id: 1, judul: 'VueJS', deskripsi: "The progressive JavaScript Framework", gambar: 'Vue.png' },
+            //     { id: 2, judul: 'ReackJS', deskripsi: "A JavaScript library for building user interfaces", gambar: 'React.jpg' }
+            // ],
+            kelas: []
+        };
+
+        // METHOD
+        const meth = {
+            hapusKelas: function (id) {
+                // console.info(index);
+                // this.kelas.splice(index, 1); //Tipe Data Array
+                // console.info(id);
+                this.kelas = this.kelas.filter(item => item.id != id);
+                localStorage.setItem('kelas', JSON.stringify(this.kelas));
+
+                swal({
+                    text: "Data Kelas Berhasil Dihapus",
+                    icon: "warning"
+                });
+            },
+            tambahKelas: function (data) {
+                // console.info(data);
+                this.kelas.push(data);
+                localStorage.setItem('kelas', JSON.stringify(this.kelas));
+                //Pastikan Rubah dulu Format Datanya menjadi JSON, Karena Format Objeck didalam Local Storage tidak bisa dibaca.
+
+                swal({
+                    title: data.judul,
+                    text: "Data Kelas Berhasil Disimpan",
+                    icon: "success",
+                });
+            }
+        };
+
+        // COMPONENTS
+        const comp = {
+            'home': Home
+        }
+
+        const app = new Vue({
+            el: "#app",
+            router,
+            data: dt,
+            created() {
+                this.kelas = JSON.parse(localStorage.getItem('kelas')) || []; //Parsing ke bentuk objeck JavaScript
+            },
+            methods: meth,
+            computed: {
+
+            },
+            components: comp
+        });
+    </script>
+</body>
+</html>
